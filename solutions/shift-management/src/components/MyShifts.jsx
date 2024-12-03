@@ -1,6 +1,6 @@
 import '../css/MyShifts.css'
 import { useEffect, useState } from "react"
-import { Header, Icon, Label, Segment, List, Button, SegmentGroup } from 'semantic-ui-react'
+import { Header, Segment, List, Button, SegmentGroup } from 'semantic-ui-react'
 
 const VITE_REACT_APP_SERVER = import.meta.env.VITE_REACT_APP_SERVER;
 
@@ -55,9 +55,16 @@ export default function MyShifts() {
     };
 
     const handleCancelShift = (shiftId) => {
-    console.log(`Cancelling shift with ID: ${shiftId}`);
-    // Add API call to cancel the shift here
-    //setShifts((prevShifts) => prevShifts.filter((shift) => shift.id !== shiftId));
+        console.log(`Cancelling shift with ID: ${shiftId}`);
+        // Add API call to cancel the shift here
+        fetch(`${VITE_REACT_APP_SERVER}//shifts/${shiftId}/cancel`)
+        .then(res => res.json())
+        .then(data => {
+            console.log(data)
+            fetchShifts();
+        })
+        .catch(err => console.log(err))
+        //setShifts((prevShifts) => prevShifts.filter((shift) => shift.id !== shiftId));
     };
 
     return(
