@@ -1,7 +1,7 @@
 #root {
   margin: 0 auto;
   padding: 0;
-
+  max-width: 73%
 }
 
 .main-tab{
@@ -15,4 +15,9 @@
 .tab-panel-style{
   font-size: 2rem;  
   color: #004FB4;
+}
+
+.overflow-list{
+  max-height: 80vh;
+  overflow-x: auto;
 }

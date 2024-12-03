@@ -1,0 +1,19 @@
+.ui.top.attached.header{
+    margin-top: -1px !important;
+    background: #F1F4F8;
+    color: #4F6C92;
+}
+
+.ui.tab.active, .ui.tab.open{
+    padding: 0 !important;
+}
+
+.total-shifts-font{
+    font-size: 1rem;
+    color: #A4B8D3;
+    margin-inline-start: 10px;
+}
+
+.list-color{
+    color: #4F6C92;
+}

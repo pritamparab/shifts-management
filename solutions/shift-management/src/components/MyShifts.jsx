@@ -1,5 +1,6 @@
+import '../css/MyShifts.css'
 import { useEffect, useState } from "react"
-import { Header, Icon, Label, Segment, List, Button } from 'semantic-ui-react'
+import { Header, Icon, Label, Segment, List, Button, SegmentGroup } from 'semantic-ui-react'
 
 const VITE_REACT_APP_SERVER = import.meta.env.VITE_REACT_APP_SERVER;
 
@@ -56,39 +57,42 @@ export default function MyShifts() {
     const handleCancelShift = (shiftId) => {
     console.log(`Cancelling shift with ID: ${shiftId}`);
     // Add API call to cancel the shift here
-    setShifts((prevShifts) => prevShifts.filter((shift) => shift.id !== shiftId));
+    //setShifts((prevShifts) => prevShifts.filter((shift) => shift.id !== shiftId));
     };
-    
-    //const groupedShifts = groupShiftsByDay(shifts);
 
     return(
-    <>
+    <div className='overflow-list'>
+        <SegmentGroup>
         {Object.keys(shifts).map((day) => (
         <>
-          <Header as="h3" attached='top'>
-            {day} {shifts[day].shifts.length} shifts,{" "}
-            {formatDuration(shifts[day].totalDuration)}
-          </Header>
-          <Segment attached>
-          <List divided relaxed>
-            {shifts[day].shifts.map((shift) => (
-              <List.Item key={shift.id}>
-                <List.Content floated="right">
-                    <Button 
-                    basic color='red' 
-                    disabled={isShiftOngoing(shift)}
-                    onClick={() => handleCancelShift(shift.id)}>
-                        Cancel
-                    </Button>
-                </List.Content>
-                <div>{new Date(shift.startTime).toLocaleTimeString()} {new Date(shift.endTime).toLocaleTimeString()}</div>
-                <div>{shift.area}</div>           
-              </List.Item>
-            ))}
-          </List>
-          </Segment>
+            <Header as="h3" attached='top'>
+                {day}
+                <span className='total-shifts-font'>
+                    {shifts[day].shifts.length} shifts,{" "}
+                    {formatDuration(shifts[day].totalDuration)}
+                </span>
+            </Header>
+            <Segment attached>
+                <List divided relaxed>
+                {shifts[day].shifts.map((shift) => (
+                <List.Item key={shift.id}>
+                    <List.Content floated="right">
+                        <Button 
+                        basic color='red' 
+                        disabled={isShiftOngoing(shift)}
+                        onClick={() => handleCancelShift(shift.id)}>
+                            Cancel
+                        </Button>
+                    </List.Content>
+                    <div className='list-color'>{new Date(shift.startTime).toLocaleTimeString()}-{new Date(shift.endTime).toLocaleTimeString()}</div>
+                    <div className='list-color'>{shift.area}</div>           
+                </List.Item>
+                ))}
+                </List>
+            </Segment>
         </>
       ))}
-    </>
+      </SegmentGroup>
+    </div>
     )
 }
