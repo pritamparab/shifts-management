@@ -54,17 +54,21 @@ export default function MyShifts() {
         return now >= shift.startTime && now <= shift.endTime;
     };
 
-    const handleCancelShift = (shiftId) => {
+    const handleCancelShift = async(shiftId) => {
         console.log(`Cancelling shift with ID: ${shiftId}`);
         // Add API call to cancel the shift here
-        fetch(`${VITE_REACT_APP_SERVER}//shifts/${shiftId}/cancel`)
+        await fetch(`${VITE_REACT_APP_SERVER}/shifts/${shiftId}/cancel`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
         .then(res => res.json())
         .then(data => {
             console.log(data)
             fetchShifts();
         })
         .catch(err => console.log(err))
-        //setShifts((prevShifts) => prevShifts.filter((shift) => shift.id !== shiftId));
     };
 
     return(
@@ -79,7 +83,7 @@ export default function MyShifts() {
                     {formatDuration(shifts[day].totalDuration)}
                 </span>
             </Header>
-            <Segment attached>
+            <Segment key={day} attached>
                 <List divided relaxed>
                 {shifts[day].shifts.map((shift) => (
                 <List.Item key={shift.id}>

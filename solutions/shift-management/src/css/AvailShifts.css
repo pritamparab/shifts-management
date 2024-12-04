@@ -1,1 +1,4 @@
-
+.ui.segment{
+    margin: unset;
+    border: unset;
+}
