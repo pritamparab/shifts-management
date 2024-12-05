@@ -1,72 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Tab, Segment, SegmentGroup, List, Header, Button } from "semantic-ui-react";
 import '../css/AvailShifts.css';
+import { ApiContext } from "../ApiContext";
 import { fetchAddShift, fetchCancelShift } from "../ApiCalls";
 
-const VITE_REACT_APP_SERVER = import.meta.env.VITE_REACT_APP_SERVER;
-
 const AvailShifts = () => {
+    const { loadingShift, fetchShifts, availShifts, isShiftOngoing, groupAvailShiftsByDay } = useContext(ApiContext)
     const [selectedCity, setSelectedCity] = useState("Helsinki");
     const [groupedShifts, setGroupedShifts] = useState({});
     const [totalShifts, setTotalShifts] = useState({})
-    const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(false)
 
-    const groupShiftsByDay = (shifts) => {
-        if (!Array.isArray(shifts)) return {};
-        const today = new Date();
-        const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const oneDay = 24 * 60 * 60 * 1000;
-
-        return shifts.reduce((acc, shift) => {
-            const shiftDate = new Date(shift.startTime);
-            const diff = Math.floor((shiftDate - dayStart) / oneDay);
-            const key = diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : shiftDate.toDateString();
-
-            if (!acc[key]) acc[key] = [];
-            acc[key].push(shift);
-            return acc;
-        }, {});
-    };
-
-    const fetchShifts = () => {
-        fetch(`${VITE_REACT_APP_SERVER}/shifts`)
-        .then(res => res.json())
-        .then(data => {
-            setShifts(data)
-            groupShiftsByDay(data)
-            console.log(data)
-        })
-        .catch(err => {
-            console.log(err)
-        })
-    }
-    useEffect(()=>{
-        fetchShifts()
-    },[])
-
     const filterShiftsByCity = () => {
-        const filteredShifts = shifts.filter((shift) => shift.area === selectedCity);
-        const grouped = groupShiftsByDay(filteredShifts);
+        const filteredShifts = availShifts.filter((shift) => shift.area === selectedCity);
+        const grouped = groupAvailShiftsByDay(filteredShifts);
         setTotalShifts({
-            "Helsinki": shifts.filter((shift) => shift.area === "Helsinki").length,
-            "Tampere": shifts.filter((shift) => shift.area === "Tampere").length,
-            "Turku": shifts.filter((shift) => shift.area === "Turku").length
+            "Helsinki": availShifts.filter((shift) => shift.area === "Helsinki").length,
+            "Tampere": availShifts.filter((shift) => shift.area === "Tampere").length,
+            "Turku": availShifts.filter((shift) => shift.area === "Turku").length
         })
         setGroupedShifts(grouped);
     };
     
     useEffect(() => {
         filterShiftsByCity();
-    }, [selectedCity, shifts]);
-
-    const isShiftOngoing = (shift) => {
-        const now = Date.now();
-        return now >= shift.startTime && now <= shift.endTime;
-    };
+    }, [selectedCity, availShifts]);
 
     const isOverlapping = (shift) => {
-        return shifts.some(
+        return availShifts.some(
             (s) =>
             s.booked &&
             ((shift.startTime >= s.startTime && shift.startTime < s.endTime) ||
@@ -81,9 +42,7 @@ const AvailShifts = () => {
         if(addShift.status_code == 200){
             fetchShifts()
         }
-        setTimeout(() => {
-            setLoading({[shiftId]:false})
-        }, 4000);
+        setLoading({[shiftId]:false})
     };
 
     const handleCancelShift = async (shiftId) => {
@@ -93,9 +52,7 @@ const AvailShifts = () => {
         if(cancelShift.status_code == 200){
             fetchShifts()
         }
-        setTimeout(() => {
-            setLoading({[shiftId]:false})
-        }, 4000);
+        setLoading({[shiftId]:false})
     };
 
     const panes = [
@@ -106,6 +63,7 @@ const AvailShifts = () => {
 
     return (
     <div className='overflow-list'>
+        {loadingShift ? <Loader active size='massive'/>: <>
         <Tab
             menu={{ secondary: true, text: true, color: 'blue', font:'big', style: { fontSize: '20px', justifyContent:'space-evenly' } }}
             panes={panes.map((pane) => ({
@@ -167,6 +125,7 @@ const AvailShifts = () => {
         </>  
         ))}
         </SegmentGroup>
+        </>}
     </div>
     );
 };
