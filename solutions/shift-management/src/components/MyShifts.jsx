@@ -1,12 +1,13 @@
 import '../css/MyShifts.css'
 import { useEffect, useState } from "react"
 import { Header, Segment, List, Button, SegmentGroup } from 'semantic-ui-react'
+import { fetchCancelShift } from '../ApiCalls';
 
 const VITE_REACT_APP_SERVER = import.meta.env.VITE_REACT_APP_SERVER;
 
-
 export default function MyShifts() {
     const [shifts, setShifts] = useState([]);
+    const [loading, setLoading] = useState(false)
 
     const groupShiftsByDay = (shifts) => {
         const today = new Date();
@@ -55,20 +56,15 @@ export default function MyShifts() {
     };
 
     const handleCancelShift = async(shiftId) => {
+        setLoading({[shiftId]:true})
         console.log(`Cancelling shift with ID: ${shiftId}`);
-        // Add API call to cancel the shift here
-        await fetch(`${VITE_REACT_APP_SERVER}/shifts/${shiftId}/cancel`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          })
-        .then(res => res.json())
-        .then(data => {
-            console.log(data)
-            fetchShifts();
-        })
-        .catch(err => console.log(err))
+        const cancelShift = await fetchCancelShift(shiftId)
+        if(cancelShift.status_code == 200){
+            fetchShifts()
+        }
+        setTimeout(() => {
+            setLoading({[shiftId]:false})
+        }, 4000);
     };
 
     return(
@@ -89,6 +85,7 @@ export default function MyShifts() {
                 <List.Item key={shift.id}>
                     <List.Content floated="right">
                         <Button 
+                        loading={loading[shift.id]}
                         basic color='red' 
                         disabled={isShiftOngoing(shift)}
                         onClick={() => handleCancelShift(shift.id)}>

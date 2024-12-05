@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Tab, Segment, SegmentGroup, List, Header, Button } from "semantic-ui-react";
 import '../css/AvailShifts.css';
+import { fetchAddShift, fetchCancelShift } from "../ApiCalls";
 
 const VITE_REACT_APP_SERVER = import.meta.env.VITE_REACT_APP_SERVER;
 
@@ -9,6 +10,7 @@ const AvailShifts = () => {
     const [groupedShifts, setGroupedShifts] = useState({});
     const [totalShifts, setTotalShifts] = useState({})
     const [shifts, setShifts] = useState([]);
+    const [loading, setLoading] = useState(false)
 
     const groupShiftsByDay = (shifts) => {
         if (!Array.isArray(shifts)) return {};
@@ -72,14 +74,28 @@ const AvailShifts = () => {
         );
     };
 
-    const handleBookShift = (shiftId) => {
+    const handleBookShift = async(shiftId) => {
+        setLoading({[shiftId]:true})
         console.log(`Booking shift with ID: ${shiftId}`);
-        // Add booking logic here
+        const addShift = await fetchAddShift(shiftId)
+        if(addShift.status_code == 200){
+            fetchShifts()
+        }
+        setTimeout(() => {
+            setLoading({[shiftId]:false})
+        }, 4000);
     };
 
-    const handleCancelShift = (shiftId) => {
+    const handleCancelShift = async (shiftId) => {
+        setLoading({[shiftId]:true})
         console.log(`Cancelling shift with ID: ${shiftId}`);
-        // Add cancellation logic here
+        const cancelShift = await fetchCancelShift(shiftId)
+        if(cancelShift.status_code == 200){
+            fetchShifts()
+        }
+        setTimeout(() => {
+            setLoading({[shiftId]:false})
+        }, 4000);
     };
 
     const panes = [
@@ -89,9 +105,9 @@ const AvailShifts = () => {
     ];
 
     return (
-    <div>
+    <div className='overflow-list'>
         <Tab
-            menu={{ secondary: true, text: true, font:'big', style: { fontSize: '20px' } }}
+            menu={{ secondary: true, text: true, color: 'blue', font:'big', style: { fontSize: '20px', justifyContent:'space-evenly' } }}
             panes={panes.map((pane) => ({
             menuItem: pane.menuItem,
             render: () => pane.render(),
@@ -108,29 +124,40 @@ const AvailShifts = () => {
                 {groupedShifts[day].map((shift) => (
                 <List.Item key={shift.id}>
                     <List.Content floated="right">
-                        <span>
-                            {isShiftOngoing(shift) ? 'Booked':
-                            isOverlapping(shift) ? 'Overlapping':
-                            shift.booked ? 'Booked' : ''
-                            }
-                            {shift.booked ? "Booked" : isOverlapping(shift) ? "Overlapping" : "Book"}
-                        </span>
-                        <Button
-                        color="green"
-                        disabled={shift.booked || isOverlapping(shift)}
-                        onClick={() => handleBookShift(shift.id)}
+                        <span
+                        className={`${shift.booked ? "color-booked" : ""} ${
+                            isOverlapping(shift) ? "color-overlapping" : ""
+                          }`}
                         >
-                            {shift.booked ? "Booked" : isOverlapping(shift) ? "Overlapping" : "Book"}
-                        </Button>
+                            {shift.booked
+                            ? "Booked"
+                            : isOverlapping(shift)
+                            ? "Overlapping"
+                            : ""}
+                        </span>
+                        {/* Book Button */}
+                        {!shift.booked && (
+                            <Button
+                            loading={loading[shift.id]}
+                            basic color="green"
+                            disabled={isOverlapping(shift)}
+                            onClick={() => handleBookShift(shift.id)}
+                            >
+                            {isOverlapping(shift) ? "Overlapping" : "Book"}
+                            </Button>
+                        )}
+                        {/* Cancel Button */}
                         {shift.booked && (
-                        <Button
-                            color="red"
+                            <Button
+                            loading={loading[shift.id]}
+                            basic color="red"
                             disabled={isShiftOngoing(shift)}
                             onClick={() => handleCancelShift(shift.id)}
-                        >
+                            >
                             {isShiftOngoing(shift) ? "Ongoing" : "Cancel"}
-                        </Button>
+                            </Button>
                         )}
+                        
                     </List.Content>
                     <div className='list-color'>{new Date(shift.startTime).toLocaleTimeString()}-{new Date(shift.endTime).toLocaleTimeString()}</div>
                 </List.Item>
